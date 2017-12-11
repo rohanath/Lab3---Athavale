@@ -22,6 +22,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
+//import com.service.userActivity;
 
 @Controller    // This means that this class is a Controller
 @CrossOrigin(origins = "http://localhost:3000")
@@ -101,6 +102,7 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody String user, HttpSession session) {
         JSONObject jsonObject = new JSONObject(user);
         session.setAttribute("name", jsonObject.getString("username"));
+        //userActivity.saveActivity(username,"Uploaded a File "+file.getOriginalFilename());
         return new ResponseEntity(userService.login(jsonObject.getString("username"), jsonObject.getString("password")), HttpStatus.OK);
     }
 
@@ -109,6 +111,7 @@ public class UserController {
 
         System.out.println("shareFile:" + fileData);
         JSONObject shareFileServiceReturnValues = fileService.shareFile(fileData);
+        //userActivity.saveActivity(username,"Shared file"+fileData.filename);
         return new ResponseEntity(shareFileServiceReturnValues.getString("message"), (HttpStatus) shareFileServiceReturnValues.get("httpStatus"));
     }
 
@@ -117,6 +120,7 @@ public class UserController {
 
         System.out.println("shareFile:" + fileData);
         JSONObject jsonObject = new JSONObject(fileData);
+        //userActivity.saveActivity(username,"Deleted file"+fileData.filename);
         return new ResponseEntity(userService.deleteFile(jsonObject.getString("username"), jsonObject.getString("filename")), HttpStatus.OK);
     }
 
@@ -125,6 +129,7 @@ public class UserController {
 
         System.out.println("shareFile:" + fileData);
         JSONObject jsonObject = new JSONObject(fileData);
+        //userActivity.saveActivity(username,"Starred a file"+fileData.filename);
         return new ResponseEntity(userService.starFile(jsonObject.getString("username"), jsonObject.getString("filename")), HttpStatus.OK);
     }
 
@@ -133,6 +138,7 @@ public class UserController {
 
         System.out.println("shareFile:" + fileData);
         JSONObject jsonObject = new JSONObject(fileData);
+        //userActivity.saveActivity(username,"Unstarred a starred file");
         return new ResponseEntity(userService.deletestarFile(jsonObject.getString("username"), jsonObject.getString("filename")), HttpStatus.OK);
     }
 
@@ -140,8 +146,23 @@ public class UserController {
     public ResponseEntity<?> getUserData(@RequestBody String user, HttpSession session) {
         JSONObject jsonObject = new JSONObject(user);
         session.setAttribute("name", jsonObject.getString("username"));
+        //userActivity.saveActivity(username,"Fetched user data");
         return new ResponseEntity(userService.getUserData(jsonObject.getString("username")), HttpStatus.OK);
     }
+
+    @PostMapping(path="/upload",consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<?> upload(@RequestParam("f1") MultipartFile file, @RequestParam("username") String username, HttpSession session) {
+        System.out.println("in upload file for "+username);
+        try{
+            file.transferTo(new File(""+new File(new File(new File(new File(".").getAbsolutePath()).getParent()).getParent())+"/"+ username + "/normal/"+file.getOriginalFilename()));
+            //userActivity.saveActivity(username,"Uploaded a File "+file.getOriginalFilename());
+        }
+        catch (Exception e){
+            System.out.println(e);
+        }
+        return new ResponseEntity(HttpStatus.CREATED);
+    }
+
 
     @PostMapping(value = "/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
